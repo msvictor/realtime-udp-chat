@@ -2,12 +2,12 @@ const socket = require("dgram").createSocket("udp4");
 const Readline = require("readline");
 
 class Client {
-  constructor() {
+  constructor(host, port) {
     process.stdin.resume();
-    this.SERVER_PORT = 3333;
     this.SERVER_HOST = "localhost";
-    this.USER_PORT = 3334;
-    this.USER_HOST = "localhost";
+    this.SERVER_PORT = 3333;
+    this.USER_HOST = host;
+    this.USER_PORT = port;
 
     this.userAddress = "";
     this.user = null;
@@ -23,20 +23,20 @@ class Client {
     process.on("exit", this.exitHandler.bind());
   }
 
-  onConnection() {
+  async onConnection() {
     socket.on("listening", () => {
       this.userAddress = socket.address();
     });
 
-    this.readline.question("Please enter a username ", answer => {
+    await this.readline.question("Please enter a username ", answer => {
       this.user = answer;
-      let msg = {
+      let data = {
         header: {
           type: "connecting"
         }
       };
 
-      let message = new Buffer(JSON.stringify(msg));
+      let message = Buffer.from(JSON.stringify(data));
       socket.send(
         message,
         0,
@@ -49,9 +49,9 @@ class Client {
     socket.bind(this.USER_PORT, this.USER_HOST);
   }
 
-  onSendingMessage() {
-    socket.on("message", (msg, rinfo) => {
-      let messageObject = JSON.parse(msg.toString());
+  async onSendingMessage() {
+    socket.on("message", (data, rinfo) => {
+      let messageObject = JSON.parse(data.toString());
 
       if (messageObject.header.type === "Sending") {
         console.log(Buffer.from(messageObject.body.message).toString());
@@ -60,19 +60,20 @@ class Client {
       }
     });
 
-    this.readline.on("lineinput", () => {
-      let msg = {
+    await this.readline.on("line", input => {
+      let { address, port } = this.userAddress;
+      let data = {
         header: {
           type: "Sending"
         },
         body: {
-          message: new Buffer(
-            `${this.user}-${this.userAddress}: ${input}`
+          message: Buffer.from(
+            `${this.user}-${address}:${port} → ${input}`
           ).toJSON()
         }
       };
 
-      let message = new Buffer(JSON.stringify(msg));
+      let message = Buffer.from(JSON.stringify(data));
       socket.send(
         message,
         0,
@@ -85,9 +86,9 @@ class Client {
     });
   }
 
-  onDisconnection() {
-    socket.on("message", (msg, rinfo) => {
-      let messageObject = JSON.parse(msg.toString());
+  async onDisconnection() {
+    await socket.on("message", (data, rinfo) => {
+      let messageObject = JSON.parse(data.toString());
 
       if (messageObject.header.type === "close") {
         console.log(Buffer.from(messageObject.body.message).toString());
@@ -96,26 +97,32 @@ class Client {
     });
   }
 
-  excepitionHandler() {
-    socket.on("error", err => {
+  async excepitionHandler() {
+    await socket.on("error", err => {
       console.log(`server error: ${err.stack}`);
     });
   }
 
-  exitHandler() {
+  async exitHandler() {
     this.readline.close();
 
-    let msg = {
+    let data = {
       header: {
         type: "close"
       },
       body: {
-        message: new Buffer(`${this.user} has left the chat`).toJSON()
+        message: Buffer.from(`${this.user} has left the chat`).toJSON()
       }
     };
 
-    let message = new Buffer(JSON.stringify(msg));
-    socket.send(message, 0, message.length, this.SERVER_PORT, this.SERVER_HOST);
+    let message = Buffer.from(JSON.stringify(data));
+    await socket.send(
+      message,
+      0,
+      message.length,
+      this.SERVER_PORT,
+      this.SERVER_HOST
+    );
 
     console.log("all clean!");
     process.exit();
