@@ -1,9 +1,8 @@
-const dgram = require("dgram");
+const socket = require("dgram").createSocket("udp4");
 
 class Server {
   constructor() {
     process.stdin.resume();
-    this.socket = dgram.createSocket("udp4");
     this.port = 3333;
     this.host = "localhost";
     this.clients = [];
@@ -17,16 +16,16 @@ class Server {
   }
 
   onServerStart() {
-    this.socket.on("listening", () => {
-      const address = this.socket.address();
+    socket.on("listening", () => {
+      const address = socket.address();
       console.log(`server listening ${address.address}:${address.port}`);
     });
 
-    this.socket.bind(this.port, this.host);
+    socket.bind(this.port, this.host);
   }
 
   onClientConnect() {
-    this.socket.on("message", (msg, rinfo) => {
+    socket.on("message", (msg, rinfo) => {
       let menssageObject = JSON.parse(msg.toString());
 
       if (menssageObject.header.type === "connecting") {
@@ -35,15 +34,14 @@ class Server {
           address: rinfo.address,
           port: rinfo.port
         });
-      } else {
-        this.excepitionHandler();
       }
     });
   }
 
   onClientDisconnect() {
-    this.socket.on("message", (msg, rinfo) => {
+    socket.on("message", (msg, rinfo) => {
       let menssageObject = JSON.parse(msg.toString());
+
       if (menssageObject.header.type === "close") {
         let index = this.clients.findIndex(client => {
           return client.address === rinfo.address && client.port === rinfo.port;
@@ -52,14 +50,12 @@ class Server {
           `disconnection of  ${this.clients[index].address}:${this.clients[index].port}`
         );
         this.clients.splice(index, 1);
-      } else {
-        this.excepitionHandler();
       }
     });
   }
 
   onMessageCatch() {
-    this.socket.on("message", (msg, rinfo) => {
+    socket.on("message", (msg, rinfo) => {
       let menssageObject = JSON.parse(msg.toString());
 
       if (menssageObject.header.type == "Sending") {
@@ -72,13 +68,7 @@ class Server {
             new Promise((resolve, reject) => {
               try {
                 resolve(
-                  this.socket.send(
-                    msg,
-                    0,
-                    msg.length,
-                    client.port,
-                    client.address
-                  )
+                  socket.send(msg, 0, msg.length, client.port, client.address)
                 );
               } catch (error) {
                 reject(0);
@@ -90,21 +80,21 @@ class Server {
           console.log("all messages sent, everything ok!")
         );
       } else {
-        this.excepitionHandler();
+        console.log("systemled to understand the message!");
       }
     });
   }
 
   excepitionHandler() {
-    this.socket.on("error", err => {
+    socket.on("error", err => {
       console.log(`server error: ${err.stack}`);
-      this.socket.close();
+      socket.close();
     });
   }
 
   exitHandler() {
     let tasks = [];
-    for (let client of this.clients) {
+    for (let client of clients) {
       let msg = {
         header: {
           type: "close"
@@ -118,13 +108,7 @@ class Server {
       tasks.push(
         new Promise((resolve, reseject) => {
           resolve(
-            this.socket.send(
-              message,
-              0,
-              message.length,
-              client.port,
-              client.address
-            )
+            socket.send(message, 0, message.length, client.port, client.address)
           );
         })
       );
