@@ -15,18 +15,18 @@ class Server {
     process.on("exit", this.exitHandler.bind());
   }
 
-  onServerStart() {
+  async onServerStart() {
     socket.on("listening", () => {
       const address = socket.address();
       console.log(`server listening ${address.address}:${address.port}`);
     });
 
-    socket.bind(this.PORT, this.HOST);
+    await socket.bind(this.PORT, this.HOST);
   }
 
-  onClientConnect() {
-    socket.on("message", (msg, rinfo) => {
-      let menssageObject = JSON.parse(msg.toString());
+  async onClientConnect() {
+    await socket.on("message", (data, rinfo) => {
+      let menssageObject = JSON.parse(data.toString());
 
       if (menssageObject.header.type === "connecting") {
         console.log(`new connection of  ${rinfo.address}:${rinfo.port}`);
@@ -38,9 +38,9 @@ class Server {
     });
   }
 
-  onClientDisconnect() {
-    socket.on("message", (msg, rinfo) => {
-      let menssageObject = JSON.parse(msg.toString());
+  async onClientDisconnect() {
+    await socket.on("message", (data, rinfo) => {
+      let menssageObject = JSON.parse(data.toString());
 
       if (menssageObject.header.type === "close") {
         let index = this.clients.findIndex(client => {
@@ -54,13 +54,13 @@ class Server {
     });
   }
 
-  onMessageCatch() {
-    socket.on("message", (msg, rinfo) => {
-      let menssageObject = JSON.parse(msg.toString());
+  async onMessageCatch() {
+    await socket.on("message", (data, rinfo) => {
+      let menssageObject = JSON.parse(data.toString());
 
-      if (menssageObject.header.type == "Sending") {
+      if (menssageObject.header.type === "Sending") {
         let tasks = [];
-        for (client of this.clients) {
+        for (let client of this.clients) {
           if (client.address === rinfo.address && client.port === rinfo.port) {
             continue;
           }
@@ -68,7 +68,7 @@ class Server {
             new Promise((resolve, reject) => {
               try {
                 resolve(
-                  socket.send(msg, 0, msg.length, client.port, client.address)
+                  socket.send(data, 0, data.length, client.port, client.address)
                 );
               } catch (error) {
                 reject(0);
@@ -79,33 +79,33 @@ class Server {
         Promise.all(tasks).then(result =>
           console.log("all messages sent, everything ok!")
         );
-      } else {
-        console.log("systemled to understand the message!");
       }
     });
   }
 
-  excepitionHandler() {
-    socket.on("error", err => {
+  async excepitionHandler() {
+    await socket.on("error", err => {
       console.log(`server error: ${err.stack}`);
       socket.close();
     });
   }
 
-  exitHandler() {
+  async exitHandler() {
     let tasks = [];
     for (let client of clients) {
-      let msg = {
+      let data = {
         header: {
           type: "close"
         },
         body: {
-          message: new Buffer("Server shutting down. Have a nice day!").toJSON()
+          message: Buffer.from(
+            "Server shutting down. Have a nice day!"
+          ).toJSON()
         }
       };
-      let message = new Buffer(JSON.stringify(msg));
+      let message = Buffer.from(JSON.stringify(data));
 
-      tasks.push(
+      await tasks.push(
         new Promise((resolve, reseject) => {
           resolve(
             socket.send(message, 0, message.length, client.port, client.address)
