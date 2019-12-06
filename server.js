@@ -3,8 +3,8 @@ const socket = require("dgram").createSocket("udp4");
 class Server {
   constructor() {
     process.stdin.resume();
-    this.port = 3333;
-    this.host = "localhost";
+    this.PORT = 3333;
+    this.HOST = "localhost";
     this.clients = [];
 
     this.onServerStart();
@@ -21,7 +21,7 @@ class Server {
       console.log(`server listening ${address.address}:${address.port}`);
     });
 
-    socket.bind(this.port, this.host);
+    socket.bind(this.PORT, this.HOST);
   }
 
   onClientConnect() {
