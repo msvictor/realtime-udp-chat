@@ -1,15 +1,15 @@
 ## Realtime-Chat with Node.js, Socket and UDP Protocol
 
-##### Examples:
+#### Examples:
 
-=============
+> Server starting:
+> ![> Server starting:](./assets/serverstart.png)
 
-![> Server starting:](./assets/serverstart.png)
-![> Clients connections:](./assets/user1connection.png)
-![](./assets/user3connection.png)
-![](./assets/user3connection.png)
-![](./assets/serverlogconnections.png)
-![> Chat:](./assets/messagesexample.png)
+> Clients connections:
+> ![> Clients connections:](./assets/user1connection.png) > ![](./assets/user3connection.png) > ![](./assets/user3connection.png) > ![](./assets/serverlogconnections.png)
+
+> Chat:
+> ![> Chat:](./assets/messagesexample.png)
 
 ### Running server
 
