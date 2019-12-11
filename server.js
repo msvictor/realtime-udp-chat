@@ -3,13 +3,13 @@ const socket = require("dgram").createSocket("udp4");
 class Server {
   constructor() {
     /**
-     * This variables given the host and port to the server
+     * This variables give the host and port to the server
      */
     this.PORT = 3333;
     this.HOST = "localhost";
 
     /**
-     * This array keep all the clients log on server
+     * This array store all the clients log on server
      */
     this.clients = [];
 
@@ -45,7 +45,7 @@ class Server {
   }
 
   /**
-   * This method start a socket whit a host and a port specified and watch when
+   * This method start a socket with a host and a port specified and watch when
    * a socket is getting up and give a log message with the address and the port
    * of the new socket.
    */
@@ -59,7 +59,7 @@ class Server {
   }
 
   /**
-   * This method watch when a clinet connetc on the server and give a log message
+   * This method watch when a clinet connect on the server and give a log message
    * with the address and the port of the client
    */
   onClientConnect() {
@@ -77,8 +77,8 @@ class Server {
   }
 
   /**
-   * This method watch when a clinet connetc on the server and give a log message
-   * with the address and the port of the client
+   * This method watch when a clinet disconnect from the server and give a log message
+   * then remove the client from the array
    */
   onClientDisconnect() {
     socket.on("message", (data, rinfo) => {
@@ -140,7 +140,7 @@ class Server {
   }
 
   /**
-   * This method is triggered when the socket process is stopped. It's log out
+   * This method is triggered when the socket process is stopped. This log out
    * all the clients from the server, send a message with the status, give a
    * feedback message then kill the socket process
    */

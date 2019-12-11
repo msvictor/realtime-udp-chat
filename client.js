@@ -2,33 +2,81 @@ const socket = require("dgram").createSocket("udp4");
 const Readline = require("readline");
 
 class Client {
-  constructor(host, port) {
-    process.stdin.resume();
+  constructor() {
+    /**
+     * This variables give the host and port from the server
+     */
     this.SERVER_HOST = "localhost";
     this.SERVER_PORT = 3333;
-    this.USER_HOST = host;
-    this.USER_PORT = port;
 
+    /**
+     * This variable give the host to user
+     */
+    this.USER_HOST = "localhost";
+
+    /**
+     * This variable give a random port to user
+     */
+    this.USER_PORT = Math.floor(Math.random() * 6000);
+
+    /**
+     * This variable will be used to store the user address
+     */
     this.userAddress = "";
+
+    /**
+     * This variable will be used to store the user nickname
+     */
     this.user = null;
+
+    /**
+     * This variable will be used to process the user input and output on the
+     * interface
+     */
     this.readline = Readline.createInterface({
       input: process.stdin,
       output: process.stdout
     });
 
+    /**
+     * This method watch when the user is connecting on the chat
+     */
     this.onConnection();
+
+    /**
+     * This method send the user message
+     */
     this.onSendingMessage();
+
+    /**
+     * This method watch when the user is disconnecting from the chat
+     */
     this.onDisconnection();
+
+    /**
+     * This method catch erros from user connection
+     */
     this.excepitionHandler();
+
+    /**
+     * This function is triggered when the user connection process is stopped
+     */
     process.on("exit", this.exitHandler.bind());
   }
 
-  async onConnection() {
+  /**
+   * This method start a socket with a host and a port specified and watch when
+   * a socket as a user is getting up for store his address. Besides that
+   * the user is asked to provide a nick name for use the chat.
+   */
+  onConnection() {
+    socket.bind(this.USER_PORT, this.USER_HOST);
+
     socket.on("listening", () => {
       this.userAddress = socket.address();
     });
 
-    await this.readline.question("Please enter a username ", answer => {
+    this.readline.question("Please enter a username ", answer => {
       this.user = answer;
       let data = {
         header: {
@@ -45,11 +93,13 @@ class Client {
         this.SERVER_HOST
       );
     });
-
-    socket.bind(this.USER_PORT, this.USER_HOST);
   }
 
-  async onSendingMessage() {
+  /**
+   * This method watch the send process from the user then catch the message write
+   * and send to all other users
+   */
+  onSendingMessage() {
     socket.on("message", (data, rinfo) => {
       let messageObject = JSON.parse(data.toString());
 
@@ -60,7 +110,7 @@ class Client {
       }
     });
 
-    await this.readline.on("line", input => {
+    this.readline.on("line", input => {
       let { address, port } = this.userAddress;
       let data = {
         header: {
@@ -86,8 +136,12 @@ class Client {
     });
   }
 
-  async onDisconnection() {
-    await socket.on("message", (data, rinfo) => {
+  /**
+   * This method watch when a user disconnect from the chat and kill the socket
+   * process
+   */
+  onDisconnection() {
+    socket.on("message", (data, rinfo) => {
       let messageObject = JSON.parse(data.toString());
 
       if (messageObject.header.type === "close") {
@@ -97,13 +151,20 @@ class Client {
     });
   }
 
-  async excepitionHandler() {
-    await socket.on("error", err => {
+  /**
+   * This method watch errors given from the socket
+   */
+  excepitionHandler() {
+    socket.on("error", err => {
       console.log(`server error: ${err.stack}`);
     });
   }
 
-  async exitHandler() {
+  /**
+   * This method is triggered when the socket process is stopped. This stop the
+   * interface process, give a log message with the user that was disconnect
+   */
+  exitHandler() {
     this.readline.close();
 
     let data = {
@@ -116,17 +177,14 @@ class Client {
     };
 
     let message = Buffer.from(JSON.stringify(data));
-    await socket.send(
-      message,
-      0,
-      message.length,
-      this.SERVER_PORT,
-      this.SERVER_HOST
-    );
+    socket.send(message, 0, message.length, this.SERVER_PORT, this.SERVER_HOST);
 
     console.log("all clean!");
     process.exit();
   }
 }
 
+/**
+ * This line export a instance of the class
+ */
 module.exports = new Client();
