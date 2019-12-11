@@ -16,7 +16,7 @@
 
 > ### Clients connections:
 >
-> ![](./assets/user1connection.png) > ![](./assets/user3connection.png) > ![](./assets/user3connection.png) > ![](./assets/serverlogconnections.png)
+> ![](./assets/user1connection.png) ![](./assets/user3connection.png) ![](./assets/user3connection.png) ![](./assets/serverlogconnections.png)
 
 > ### Chat:
 >
