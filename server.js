@@ -98,7 +98,7 @@ class Server {
 
   /**
    * This method watch all messages sent from clients and give a log message if
-   * all message are catch or if an error occurred
+   * all message are catch
    */
   onMessageCatch() {
     socket.on("message", (data, rinfo) => {
@@ -125,8 +125,6 @@ class Server {
         Promise.all(tasks).then(result =>
           console.log("all messages sent, everything ok!")
         );
-      } else {
-        console.log("server unable to understand the message!");
       }
     });
   }
