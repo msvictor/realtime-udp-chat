@@ -76,7 +76,7 @@ class Client {
       this.userAddress = socket.address();
     });
 
-    this.readline.question("Please enter a username ", answer => {
+    this.readline.question("Please enter a username: ", answer => {
       this.user = answer;
       let data = {
         header: {
