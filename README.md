@@ -2,13 +2,16 @@
 
 #### Examples:
 
-> Server starting:
+> ## Server starting:
+>
 > ![> Server starting:](./assets/serverstart.png)
 
-> Clients connections:
+> ## Clients connections:
+>
 > ![> Clients connections:](./assets/user1connection.png) > ![](./assets/user3connection.png) > ![](./assets/user3connection.png) > ![](./assets/serverlogconnections.png)
 
-> Chat:
+> ## Chat:
+>
 > ![> Chat:](./assets/messagesexample.png)
 
 ### Running server
