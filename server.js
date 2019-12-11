@@ -2,30 +2,68 @@ const socket = require("dgram").createSocket("udp4");
 
 class Server {
   constructor() {
-    process.stdin.resume();
+    /**
+     * This variables given the host and port to the server
+     */
     this.PORT = 3333;
     this.HOST = "localhost";
+
+    /**
+     * This array keep all the clients log on server
+     */
     this.clients = [];
 
+    /**
+     * This method give a feedback that the server is running
+     */
     this.onServerStart();
+
+    /**
+     * This method watch all the clients that connect on server
+     */
     this.onClientConnect();
-    this.onClientDisconnect();
+
+    /**
+     * This method watch all messages sent from client side
+     */
     this.onMessageCatch();
+
+    /**
+     * This method watch all the clients that disconnect from server
+     */
+    this.onClientDisconnect();
+
+    /**
+     * This method catch erros from server
+     */
     this.excepitionHandler();
+
+    /**
+     * This function is triggered when the server process is stopped
+     */
     process.on("exit", this.exitHandler.bind());
   }
 
-  async onServerStart() {
+  /**
+   * This method start a socket whit a host and a port specified and watch when
+   * a socket is getting up and give a log message with the address and the port
+   * of the new socket.
+   */
+  onServerStart() {
+    socket.bind(this.PORT, this.HOST);
+
     socket.on("listening", () => {
       const address = socket.address();
       console.log(`server listening ${address.address}:${address.port}`);
     });
-
-    await socket.bind(this.PORT, this.HOST);
   }
 
-  async onClientConnect() {
-    await socket.on("message", (data, rinfo) => {
+  /**
+   * This method watch when a clinet connetc on the server and give a log message
+   * with the address and the port of the client
+   */
+  onClientConnect() {
+    socket.on("message", (data, rinfo) => {
       let menssageObject = JSON.parse(data.toString());
 
       if (menssageObject.header.type === "connecting") {
@@ -38,8 +76,12 @@ class Server {
     });
   }
 
-  async onClientDisconnect() {
-    await socket.on("message", (data, rinfo) => {
+  /**
+   * This method watch when a clinet connetc on the server and give a log message
+   * with the address and the port of the client
+   */
+  onClientDisconnect() {
+    socket.on("message", (data, rinfo) => {
       let menssageObject = JSON.parse(data.toString());
 
       if (menssageObject.header.type === "close") {
@@ -54,8 +96,12 @@ class Server {
     });
   }
 
-  async onMessageCatch() {
-    await socket.on("message", (data, rinfo) => {
+  /**
+   * This method watch all messages sent from clients and give a log message if
+   * all message are catch or if an error occurred
+   */
+  onMessageCatch() {
+    socket.on("message", (data, rinfo) => {
       let menssageObject = JSON.parse(data.toString());
 
       if (menssageObject.header.type === "Sending") {
@@ -79,18 +125,28 @@ class Server {
         Promise.all(tasks).then(result =>
           console.log("all messages sent, everything ok!")
         );
+      } else {
+        console.log("server unable to understand the message!");
       }
     });
   }
 
-  async excepitionHandler() {
-    await socket.on("error", err => {
+  /**
+   * This method watch errors given from the socket
+   */
+  excepitionHandler() {
+    socket.on("error", err => {
       console.log(`server error: ${err.stack}`);
       socket.close();
     });
   }
 
-  async exitHandler() {
+  /**
+   * This method is triggered when the socket process is stopped. It's log out
+   * all the clients from the server, send a message with the status, give a
+   * feedback message then kill the socket process
+   */
+  exitHandler() {
     let tasks = [];
     for (let client of clients) {
       let data = {
@@ -105,7 +161,7 @@ class Server {
       };
       let message = Buffer.from(JSON.stringify(data));
 
-      await tasks.push(
+      tasks.push(
         new Promise((resolve, reseject) => {
           resolve(
             socket.send(message, 0, message.length, client.port, client.address)
@@ -118,4 +174,7 @@ class Server {
   }
 }
 
+/**
+ * This line export a instance of the class
+ */
 module.exports = new Server();
