@@ -56,7 +56,7 @@ class Client {
     /**
      * This method catch erros from user connection
      */
-    this.excepitionHandler();
+    this.exceptionHandler();
 
     /**
      * This function is triggered when the user connection process is stopped
@@ -154,7 +154,7 @@ class Client {
   /**
    * This method watch errors given from the socket
    */
-  excepitionHandler() {
+  exceptionHandler() {
     socket.on("error", err => {
       console.log(`server error: ${err.stack}`);
     });

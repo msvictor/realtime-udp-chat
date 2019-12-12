@@ -36,7 +36,7 @@ class Server {
     /**
      * This method catch erros from server
      */
-    this.excepitionHandler();
+    this.exceptionHandler();
 
     /**
      * This function is triggered when the server process is stopped
@@ -132,7 +132,7 @@ class Server {
   /**
    * This method watch errors given from the socket
    */
-  excepitionHandler() {
+  exceptionHandler() {
     socket.on("error", err => {
       console.log(`server error: ${err.stack}`);
       socket.close();
