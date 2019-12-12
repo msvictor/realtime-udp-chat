@@ -17,7 +17,7 @@ class Client {
     /**
      * This variable give a random port to user
      */
-    this.USER_PORT = Math.floor(Math.random() * 6000);
+    this.USER_PORT;
 
     /**
      * This variable will be used to store the user address
